@@ -26,123 +26,136 @@ const genres = {
 const handleError = (error, customMessage) => {
   console.error(customMessage, error);
   if (error.response) {
-    throw new Error(`Failed to fetch data: ${error.response.data.message || error.message}`);
+    return [];
   }
-  throw new Error('Network error. Please check your connection and try again.');
+  if (error.request) {
+    console.error('No response received:', error.request);
+    return [];
+  }
+  return [];
+};
+
+const axiosConfig = {
+  timeout: 10000,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
 };
 
 export const movieService = {
   async getTrending() {
     try {
-      const response = await axios.get(API_ENDPOINTS.trending);
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.trending, axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching trending movies:');
+      return handleError(error, 'Error fetching trending movies:');
     }
   },
 
   async getTopRated() {
     try {
-      const response = await axios.get(API_ENDPOINTS.topRated);
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.topRated, axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching top rated movies:');
+      return handleError(error, 'Error fetching top rated movies:');
     }
   },
 
   async getUpcoming() {
     try {
       const [page1, page2, page3] = await Promise.all([
-        axios.get(`${API_ENDPOINTS.upcoming}&page=1`),
-        axios.get(`${API_ENDPOINTS.upcoming}&page=2`),
-        axios.get(`${API_ENDPOINTS.upcoming}&page=3`)
+        axios.get(`${API_ENDPOINTS.upcoming}&page=1`, axiosConfig),
+        axios.get(`${API_ENDPOINTS.upcoming}&page=2`, axiosConfig),
+        axios.get(`${API_ENDPOINTS.upcoming}&page=3`, axiosConfig)
       ]);
 
       return [
-        ...page1.data.results,
-        ...page2.data.results,
-        ...page3.data.results
+        ...(page1.data.results || []),
+        ...(page2.data.results || []),
+        ...(page3.data.results || [])
       ];
     } catch (error) {
-      handleError(error, 'Error fetching upcoming movies:');
+      return handleError(error, 'Error fetching upcoming movies:');
     }
   },
 
   async getNowPlaying() {
     try {
-      const response = await axios.get(API_ENDPOINTS.nowPlaying);
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.nowPlaying, axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching now playing movies:');
+      return handleError(error, 'Error fetching now playing movies:');
     }
   },
 
   async searchMovies(query) {
     try {
-      const response = await axios.get(API_ENDPOINTS.search(query));
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.search(query), axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error searching movies:');
+      return handleError(error, 'Error searching movies:');
     }
   },
 
   async getMovieDetails(id) {
     try {
       const [details, credits, reviews] = await Promise.all([
-        axios.get(API_ENDPOINTS.movieDetails(id)),
-        axios.get(API_ENDPOINTS.credits(id)),
-        axios.get(API_ENDPOINTS.reviews(id))
+        axios.get(API_ENDPOINTS.movieDetails(id), axiosConfig),
+        axios.get(API_ENDPOINTS.credits(id), axiosConfig),
+        axios.get(API_ENDPOINTS.reviews(id), axiosConfig)
       ]);
 
       return {
-        ...details.data,
-        credits: credits.data,
-        reviews: reviews.data
+        ...(details.data || {}),
+        credits: credits.data || {},
+        reviews: reviews.data || {}
       };
     } catch (error) {
-      handleError(error, 'Error fetching movie details:');
+      return handleError(error, 'Error fetching movie details:');
     }
   },
 
   async getMovieVideos(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.videos(id));
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.videos(id), axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching movie videos:');
+      return handleError(error, 'Error fetching movie videos:');
     }
   },
 
   async getSimilarMovies(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.similar(id));
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.similar(id), axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching similar movies:');
+      return handleError(error, 'Error fetching similar movies:');
     }
   },
 
   async getMovieImages(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.movieImages(id));
-      return response.data;
+      const response = await axios.get(API_ENDPOINTS.movieImages(id), axiosConfig);
+      return response.data || {};
     } catch (error) {
-      handleError(error, 'Error fetching movie images:');
+      return handleError(error, 'Error fetching movie images:');
     }
   },
 
   async getGenres() {
     try {
-      const response = await axios.get(API_ENDPOINTS.genres);
-      return response.data.genres;
+      const response = await axios.get(API_ENDPOINTS.genres, axiosConfig);
+      return response.data.genres || [];
     } catch (error) {
-      handleError(error, 'Error fetching genres:');
+      return handleError(error, 'Error fetching genres:');
     }
   },
 
   async discoverMovies({ with_genres = '', sort_by = 'popularity.desc', year = '', page = 1 }) {
     try {
       const response = await axios.get(API_ENDPOINTS.discover, {
+        ...axiosConfig,
         params: {
           with_genres,
           sort_by,
@@ -153,18 +166,18 @@ export const movieService = {
           page
         }
       });
-      return response.data.results;
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error discovering movies:');
+      return handleError(error, 'Error discovering movies:');
     }
   },
 
   async getRecommendations(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.recommendations(id));
-      return response.data.results;
+      const response = await axios.get(API_ENDPOINTS.recommendations(id), axiosConfig);
+      return response.data.results || [];
     } catch (error) {
-      handleError(error, 'Error fetching movie recommendations:');
+      return handleError(error, 'Error fetching movie recommendations:');
     }
   },
 

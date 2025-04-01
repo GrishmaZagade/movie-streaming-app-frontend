@@ -12,23 +12,40 @@ const Hero = ({ movie, movies }) => {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
 
   useEffect(() => {
-    if (!movies || movies.length === 0) {
-      setError('Failed to load movies. Please try again.');
-      setIsLoading(false);
-      return;
-    }
+    const loadMovies = async () => {
+      try {
+        if (!movies || movies.length === 0) {
+          setError('Failed to load movies. Please try again.');
+          setIsLoading(false);
+          return;
+        }
 
-    setIsLoading(false);
-    const interval = setInterval(() => {
-      setCurrentMovieIndex((prevIndex) => (prevIndex + 1) % movies.length);
-    }, 5000);
+        setCurrentMovie(movies[0]);
+        setIsLoading(false);
+        
+        const interval = setInterval(() => {
+          setCurrentMovieIndex((prevIndex) => (prevIndex + 1) % movies.length);
+        }, 5000);
 
-    return () => clearInterval(interval);
+        return () => clearInterval(interval);
+      } catch (err) {
+        console.error('Error in loadMovies:', err);
+        setError('An error occurred while loading movies.');
+        setIsLoading(false);
+      }
+    };
+
+    loadMovies();
   }, [movies]);
 
   useEffect(() => {
-    if (!movies || movies.length === 0) return;
-    setCurrentMovie(movies[currentMovieIndex]);
+    try {
+      if (!movies || movies.length === 0) return;
+      setCurrentMovie(movies[currentMovieIndex]);
+    } catch (err) {
+      console.error('Error updating current movie:', err);
+      setError('Error updating current movie.');
+    }
   }, [currentMovieIndex, movies]);
 
   if (isLoading) {
@@ -42,10 +59,14 @@ const Hero = ({ movie, movies }) => {
   if (error) {
     return (
       <div className="relative min-h-[500px] sm:min-h-[600px] lg:h-[800px] pt-16 flex flex-col items-center justify-center bg-gray-900">
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className="text-red-500 mb-4 text-center px-4">{error}</p>
         <button 
-          onClick={() => window.location.reload()}
-          className="bg-yellow-500 text-black px-6 py-2 rounded-lg hover:bg-yellow-600"
+          onClick={() => {
+            setError(null);
+            setIsLoading(true);
+            window.location.reload();
+          }}
+          className="bg-yellow-500 text-black px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
         >
           Retry
         </button>
@@ -53,16 +74,26 @@ const Hero = ({ movie, movies }) => {
     );
   }
 
-  if (!currentMovie) return null;
+  if (!currentMovie) {
+    return (
+      <div className="relative min-h-[500px] sm:min-h-[600px] lg:h-[800px] pt-16 flex items-center justify-center bg-gray-900">
+        <p className="text-gray-400">No movies available</p>
+      </div>
+    );
+  }
 
   const backdropUrl = movieService.getBackdropUrl(currentMovie.backdrop_path);
   const isMovieInWatchlist = isInWatchlist(currentMovie.id);
 
   const handleWatchlistClick = () => {
-    if (isMovieInWatchlist) {
-      removeFromWatchlist(currentMovie.id);
-    } else {
-      addToWatchlist(currentMovie);
+    try {
+      if (isMovieInWatchlist) {
+        removeFromWatchlist(currentMovie.id);
+      } else {
+        addToWatchlist(currentMovie);
+      }
+    } catch (err) {
+      console.error('Error handling watchlist:', err);
     }
   };
 
@@ -133,7 +164,7 @@ const Hero = ({ movie, movies }) => {
               <div className="bg-gray-800/80 backdrop-blur-sm px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl 
                             flex items-center gap-1 sm:gap-2 border border-gray-700 text-sm sm:text-base">
                 <FaStar className="text-yellow-500" />
-                <span className="font-bold">{currentMovie.vote_average.toFixed(1)}</span>
+                <span className="font-bold">{currentMovie.vote_average?.toFixed(1) || '0.0'}</span>
                 <span className="text-xs sm:text-sm text-gray-400">/10</span>
               </div>
               
@@ -149,7 +180,7 @@ const Hero = ({ movie, movies }) => {
               <div className="bg-gray-800/80 backdrop-blur-sm px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl
                             border border-gray-700 text-sm sm:text-base">
                 <span className="text-gray-300">
-                  {(currentMovie.vote_count/1000).toFixed(1)}K
+                  {((currentMovie.vote_count || 0)/1000).toFixed(1)}K
                 </span>
               </div>
             </div>
