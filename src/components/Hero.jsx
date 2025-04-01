@@ -7,11 +7,18 @@ import { useWatchlist } from '../contexts/WatchlistContext';
 const Hero = ({ movie, movies }) => {
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [currentMovie, setCurrentMovie] = useState(movie);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
 
   useEffect(() => {
-    if (!movies || movies.length === 0) return;
+    if (!movies || movies.length === 0) {
+      setError('Failed to load movies. Please try again.');
+      setIsLoading(false);
+      return;
+    }
 
+    setIsLoading(false);
     const interval = setInterval(() => {
       setCurrentMovieIndex((prevIndex) => (prevIndex + 1) % movies.length);
     }, 5000);
@@ -23,6 +30,28 @@ const Hero = ({ movie, movies }) => {
     if (!movies || movies.length === 0) return;
     setCurrentMovie(movies[currentMovieIndex]);
   }, [currentMovieIndex, movies]);
+
+  if (isLoading) {
+    return (
+      <div className="relative min-h-[500px] sm:min-h-[600px] lg:h-[800px] pt-16 flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative min-h-[500px] sm:min-h-[600px] lg:h-[800px] pt-16 flex flex-col items-center justify-center bg-gray-900">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-yellow-500 text-black px-6 py-2 rounded-lg hover:bg-yellow-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (!currentMovie) return null;
 
