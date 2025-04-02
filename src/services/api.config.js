@@ -8,7 +8,16 @@ export const API_CONFIG = {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
   },
-  timeout: 10000
+  params: {
+    api_key: API_KEY,
+    language: 'en-US'
+  },
+  timeout: 30000
+};
+
+export const RETRY_CONFIG = {
+  retries: 3,
+  delay: 2000
 };
 
 const POSTER_SIZES = {
@@ -26,20 +35,20 @@ const BACKDROP_SIZES = {
 };
 
 export const API_ENDPOINTS = {
-  trending: `${BASE_URL}/trending/movie/week?api_key=${API_KEY}&language=en-US`,
-  topRated: `${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=en-US`,
-  upcoming: `${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=en-US`,
-  nowPlaying: `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US`,
-  search: (query) => `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=en-US`,
-  movieDetails: (id) => `${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US&append_to_response=videos,images`,
-  movieImages: (id) => `${BASE_URL}/movie/${id}/images?api_key=${API_KEY}`,
-  similar: (id) => `${BASE_URL}/movie/${id}/similar?api_key=${API_KEY}&language=en-US`,
-  videos: (id) => `${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`,
-  genres: `${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=en-US`,
-  discover: `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US`,
-  recommendations: (id) => `${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}&language=en-US`,
-  credits: (id) => `${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}&language=en-US`,
-  reviews: (id) => `${BASE_URL}/movie/${id}/reviews?api_key=${API_KEY}&language=en-US`,
+  trending: `${BASE_URL}/trending/movie/week`,
+  topRated: `${BASE_URL}/movie/top_rated`,
+  upcoming: `${BASE_URL}/movie/upcoming`,
+  nowPlaying: `${BASE_URL}/movie/now_playing`,
+  search: (query) => `${BASE_URL}/search/movie`,
+  movieDetails: (id) => `${BASE_URL}/movie/${id}`,
+  movieImages: (id) => `${BASE_URL}/movie/${id}/images`,
+  similar: (id) => `${BASE_URL}/movie/${id}/similar`,
+  videos: (id) => `${BASE_URL}/movie/${id}/videos`,
+  genres: `${BASE_URL}/genre/movie/list`,
+  discover: `${BASE_URL}/discover/movie`,
+  recommendations: (id) => `${BASE_URL}/movie/${id}/recommendations`,
+  credits: (id) => `${BASE_URL}/movie/${id}/credits`,
+  reviews: (id) => `${BASE_URL}/movie/${id}/reviews`,
   auth: {
     login: `${BACKEND_URL}/api/auth/login`,
     register: `${BACKEND_URL}/api/auth/register`,

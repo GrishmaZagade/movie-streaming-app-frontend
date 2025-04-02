@@ -23,35 +23,33 @@ const Login = () => {
     }
 
     try {
+      console.log('Attempting login...');
       await login({
         email: email.trim(),
         password: password
       });
+      console.log('Login successful');
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      console.error('Login error:', err);
+      setError(err.message || 'Unable to connect to server. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 
-                    flex items-center justify-center px-4 sm:px-6 py-8 mt-16 sm:mt-20">
-      <div className="w-full max-w-md bg-gray-800/50 backdrop-blur-xl rounded-lg sm:rounded-xl 
-                    shadow-2xl p-6 sm:p-8 border border-gray-700/50">
+    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 sm:px-6 py-8 mt-16 sm:mt-20">
+      <div className="w-full max-w-md bg-gray-800/50 backdrop-blur-xl rounded-lg sm:rounded-xl shadow-2xl p-6 sm:p-8 border border-gray-700/50">
         <div className="relative mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text 
-                       bg-gradient-to-r from-yellow-400 to-yellow-600 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 text-center">
             Sign in to your account
           </h2>
-          <div className="absolute inset-x-0 -bottom-2 h-px bg-gradient-to-r 
-                       from-transparent via-yellow-500/50 to-transparent"></div>
+          <div className="absolute inset-x-0 -bottom-2 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 
-                       rounded-lg text-sm animate-fade-in flex items-center">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm animate-fade-in flex items-center">
             <div className="mr-2 flex-shrink-0">⚠️</div>
             {error}
           </div>
@@ -66,10 +64,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Email address"
-                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 
-                         rounded-lg text-white focus:outline-none focus:ring-2 
-                         focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
 
@@ -80,18 +75,14 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Password"
-                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 
-                         rounded-lg text-white focus:outline-none focus:ring-2 
-                         focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
 
             <div className="flex justify-end">
               <Link 
                 to="/forgot-password" 
-                className="text-sm text-yellow-500 hover:text-yellow-400 
-                         transition-colors font-medium hover:underline"
+                className="text-sm text-yellow-500 hover:text-yellow-400 transition-colors font-medium hover:underline"
               >
                 Forgot Password?
               </Link>
@@ -101,10 +92,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 
-                     text-black rounded-lg font-medium transition-all duration-300
-                     hover:shadow-lg hover:shadow-yellow-600/30 disabled:opacity-50 
-                     disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-lg font-medium transition-all duration-300 hover:shadow-lg hover:shadow-yellow-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {loading ? (
               <>
@@ -120,8 +108,7 @@ const Login = () => {
             Don't have an account?{' '}
             <Link 
               to="/register" 
-              className="text-yellow-500 hover:text-yellow-400 transition-colors 
-                       font-medium hover:underline"
+              className="text-yellow-500 hover:text-yellow-400 transition-colors font-medium hover:underline"
             >
               Create one
             </Link>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_ENDPOINTS, getImageUrl, getBackdropUrl } from './api.config';
+import { API_ENDPOINTS, getImageUrl, getBackdropUrl, API_CONFIG, RETRY_CONFIG } from './api.config';
 
 const genres = {
   28: 'Action',
@@ -26,27 +26,51 @@ const genres = {
 const handleError = (error, customMessage) => {
   console.error(customMessage, error);
   if (error.response) {
+    console.error('Server response:', error.response.data);
     return [];
   }
   if (error.request) {
     console.error('No response received:', error.request);
     return [];
   }
+  console.error('Error:', error.message);
   return [];
 };
 
-const axiosConfig = {
-  timeout: 10000,
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
+const retryRequest = async (requestFn, retries = RETRY_CONFIG.retries) => {
+  try {
+    return await requestFn();
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`Retrying... ${retries} attempts left`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.delay));
+      return retryRequest(requestFn, retries - 1);
+    }
+    throw error;
   }
 };
+
+const axiosConfig = {
+  ...API_CONFIG,
+  validateStatus: function (status) {
+    return status >= 200 && status < 300;
+  }
+};
+
+const createParams = (additionalParams = {}) => ({
+  ...API_CONFIG.params,
+  ...additionalParams
+});
 
 export const movieService = {
   async getTrending() {
     try {
-      const response = await axios.get(API_ENDPOINTS.trending, axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.trending, {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching trending movies:');
@@ -55,7 +79,12 @@ export const movieService = {
 
   async getTopRated() {
     try {
-      const response = await axios.get(API_ENDPOINTS.topRated, axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.topRated, {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching top rated movies:');
@@ -65,9 +94,18 @@ export const movieService = {
   async getUpcoming() {
     try {
       const [page1, page2, page3] = await Promise.all([
-        axios.get(`${API_ENDPOINTS.upcoming}&page=1`, axiosConfig),
-        axios.get(`${API_ENDPOINTS.upcoming}&page=2`, axiosConfig),
-        axios.get(`${API_ENDPOINTS.upcoming}&page=3`, axiosConfig)
+        retryRequest(() => axios.get(API_ENDPOINTS.upcoming, {
+          ...axiosConfig,
+          params: createParams({ page: 1 })
+        })),
+        retryRequest(() => axios.get(API_ENDPOINTS.upcoming, {
+          ...axiosConfig,
+          params: createParams({ page: 2 })
+        })),
+        retryRequest(() => axios.get(API_ENDPOINTS.upcoming, {
+          ...axiosConfig,
+          params: createParams({ page: 3 })
+        }))
       ]);
 
       return [
@@ -82,7 +120,12 @@ export const movieService = {
 
   async getNowPlaying() {
     try {
-      const response = await axios.get(API_ENDPOINTS.nowPlaying, axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.nowPlaying, {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching now playing movies:');
@@ -91,7 +134,12 @@ export const movieService = {
 
   async searchMovies(query) {
     try {
-      const response = await axios.get(API_ENDPOINTS.search(query), axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.search(query), {
+          ...axiosConfig,
+          params: createParams({ query })
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error searching movies:');
@@ -101,9 +149,18 @@ export const movieService = {
   async getMovieDetails(id) {
     try {
       const [details, credits, reviews] = await Promise.all([
-        axios.get(API_ENDPOINTS.movieDetails(id), axiosConfig),
-        axios.get(API_ENDPOINTS.credits(id), axiosConfig),
-        axios.get(API_ENDPOINTS.reviews(id), axiosConfig)
+        retryRequest(() => axios.get(API_ENDPOINTS.movieDetails(id), {
+          ...axiosConfig,
+          params: createParams({ append_to_response: 'videos,images' })
+        })),
+        retryRequest(() => axios.get(API_ENDPOINTS.credits(id), {
+          ...axiosConfig,
+          params: createParams()
+        })),
+        retryRequest(() => axios.get(API_ENDPOINTS.reviews(id), {
+          ...axiosConfig,
+          params: createParams()
+        }))
       ]);
 
       return {
@@ -118,7 +175,12 @@ export const movieService = {
 
   async getMovieVideos(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.videos(id), axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.videos(id), {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching movie videos:');
@@ -127,7 +189,12 @@ export const movieService = {
 
   async getSimilarMovies(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.similar(id), axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.similar(id), {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching similar movies:');
@@ -136,7 +203,12 @@ export const movieService = {
 
   async getMovieImages(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.movieImages(id), axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.movieImages(id), {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data || {};
     } catch (error) {
       return handleError(error, 'Error fetching movie images:');
@@ -145,7 +217,12 @@ export const movieService = {
 
   async getGenres() {
     try {
-      const response = await axios.get(API_ENDPOINTS.genres, axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.genres, {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.genres || [];
     } catch (error) {
       return handleError(error, 'Error fetching genres:');
@@ -154,18 +231,19 @@ export const movieService = {
 
   async discoverMovies({ with_genres = '', sort_by = 'popularity.desc', year = '', page = 1 }) {
     try {
-      const response = await axios.get(API_ENDPOINTS.discover, {
-        ...axiosConfig,
-        params: {
-          with_genres,
-          sort_by,
-          year,
-          include_adult: false,
-          include_video: false,
-          language: 'en-US',
-          page
-        }
-      });
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.discover, {
+          ...axiosConfig,
+          params: createParams({
+            with_genres,
+            sort_by,
+            year,
+            include_adult: false,
+            include_video: false,
+            page
+          })
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error discovering movies:');
@@ -174,7 +252,12 @@ export const movieService = {
 
   async getRecommendations(id) {
     try {
-      const response = await axios.get(API_ENDPOINTS.recommendations(id), axiosConfig);
+      const response = await retryRequest(() => 
+        axios.get(API_ENDPOINTS.recommendations(id), {
+          ...axiosConfig,
+          params: createParams()
+        })
+      );
       return response.data.results || [];
     } catch (error) {
       return handleError(error, 'Error fetching movie recommendations:');

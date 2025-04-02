@@ -55,7 +55,8 @@ const Register = () => {
         };
         reader.readAsDataURL(compressedImage);
       } catch (err) {
-        setError('Failed to process image');
+        console.error('Image processing error:', err);
+        setError('Failed to process image. Please try again.');
       } finally {
         setImageProcessing(false);
       }
@@ -86,6 +87,7 @@ const Register = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting registration...');
       await register({
         username: formData.username,
         email: formData.email,
@@ -94,15 +96,17 @@ const Register = () => {
         profileImage: formData.profileImage
       });
 
-      // After successful registration, login with credentials
+      console.log('Registration successful, attempting login...');
       await login({
         email: formData.email,
         password: formData.password
       });
       
+      console.log('Login successful');
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Failed to create account');
+      console.error('Registration/Login error:', err);
+      setError(err.message || 'Unable to connect to server. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
@@ -119,8 +123,7 @@ const Register = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm
-                        animate-fade-in flex items-center">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm animate-fade-in flex items-center">
             <div className="mr-2 flex-shrink-0">⚠️</div>
             {error}
           </div>
@@ -129,11 +132,9 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex justify-center mb-8">
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full blur opacity-30 
-                            group-hover:opacity-60 transition duration-300"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
               <div 
-                className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gray-700/50 cursor-pointer
-                         hover:ring-2 hover:ring-yellow-500/50 transition duration-300"
+                className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gray-700/50 cursor-pointer hover:ring-2 hover:ring-yellow-500/50 transition duration-300"
                 onClick={() => imagePreview && setShowPreview(true)}
               >
                 {imageProcessing ? (
@@ -153,8 +154,7 @@ const Register = () => {
                 )}
               </div>
               <div className="absolute -bottom-1 sm:-bottom-2 right-0 flex space-x-1 sm:space-x-2">
-                <label className="bg-yellow-500 p-1.5 sm:p-2 rounded-full cursor-pointer hover:bg-yellow-600 
-                                transition-colors shadow-lg">
+                <label className="bg-yellow-500 p-1.5 sm:p-2 rounded-full cursor-pointer hover:bg-yellow-600 transition-colors shadow-lg">
                   <FaCamera size={14} className="text-black" />
                   <input 
                     type="file" 
@@ -189,9 +189,7 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 placeholder="Username"
-                className="w-full px-4 py-2.5 bg-gray-700/30 border border-gray-600/50 rounded-lg text-sm sm:text-base 
-                         text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
 
@@ -203,9 +201,7 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 placeholder="Email address"
-                className="w-full px-4 py-2.5 bg-gray-700/30 border border-gray-600/50 rounded-lg text-sm sm:text-base 
-                         text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
 
@@ -217,9 +213,7 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 placeholder="Password"
-                className="w-full px-4 py-2.5 bg-gray-700/30 border border-gray-600/50 rounded-lg text-sm sm:text-base 
-                         text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
 
@@ -230,35 +224,29 @@ const Register = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                placeholder="Confirm Password"
-                className="w-full px-4 py-2.5 bg-gray-700/30 border border-gray-600/50 rounded-lg text-sm sm:text-base 
-                         text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent
-                         placeholder-gray-400 transition duration-300"
+                placeholder="Confirm password"
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent placeholder-gray-400 transition duration-300"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-300">
-              Movie Preferences (select at least 2)
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Select your movie preferences (minimum 2)
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {genreOptions.map(genre => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {genreOptions.map((genre) => (
                 <button
                   key={genre}
                   type="button"
                   onClick={() => handlePreferenceChange(genre)}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300
-                            relative overflow-hidden group
-                            ${formData.preferences.includes(genre)
-                              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg'
-                              : 'bg-gray-700/30 text-gray-300 hover:bg-gray-700/50'}`}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    formData.preferences.includes(genre)
+                      ? 'bg-yellow-500 text-black'
+                      : 'bg-gray-700/30 text-gray-300 hover:bg-gray-700/50'
+                  }`}
                 >
-                  <span className="relative z-10">{genre}</span>
-                  {!formData.preferences.includes(genre) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-yellow-600 opacity-0 
-                                  group-hover:opacity-10 transition-opacity duration-300"></div>
-                  )}
+                  {genre}
                 </button>
               ))}
             </div>
@@ -267,10 +255,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading || imageProcessing}
-            className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 
-                     text-black rounded-lg font-medium transition-all duration-300
-                     hover:shadow-lg hover:shadow-yellow-600/30 disabled:opacity-50 
-                     disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-lg font-medium transition-all duration-300 hover:shadow-lg hover:shadow-yellow-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {loading ? (
               <>
@@ -284,33 +269,14 @@ const Register = () => {
 
           <p className="text-center text-sm text-gray-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-yellow-500 hover:text-yellow-400 transition-colors">
+            <Link 
+              to="/login" 
+              className="text-yellow-500 hover:text-yellow-400 transition-colors font-medium hover:underline"
+            >
               Sign in
             </Link>
           </p>
         </form>
-
-        {showPreview && imagePreview && (
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowPreview(false)}
-          >
-            <div className="relative max-w-2xl max-h-[80vh] overflow-hidden rounded-lg">
-              <img 
-                src={imagePreview} 
-                alt="Profile Preview" 
-                className="max-w-full max-h-[80vh] object-contain"
-              />
-              <button
-                className="absolute top-4 right-4 bg-red-500 p-2 rounded-full hover:bg-red-600 
-                         transition-colors shadow-lg"
-                onClick={() => setShowPreview(false)}
-              >
-                <FaTimes size={20} className="text-white" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

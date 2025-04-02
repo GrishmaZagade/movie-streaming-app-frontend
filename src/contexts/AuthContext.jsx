@@ -2,6 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
+const API_URL = import.meta.env.VITE_API_URL;
+
+const axiosConfig = {
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  },
+  timeout: 30000
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -29,11 +38,13 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Email and password are required');
       }
 
-      const response = await axios.post('http://localhost:5001/api/auth/login', {
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
         email: userData.email.trim().toLowerCase(),
         password: userData.password
       }, {
+        ...axiosConfig,
         headers: {
+          ...axiosConfig.headers,
           'Content-Type': 'application/json'
         }
       });
@@ -55,7 +66,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Login error:', error);
       if (error.code === 'ERR_NETWORK') {
-        throw new Error('Unable to connect to server. Please check your internet connection.');
+        throw new Error('Unable to connect to server. Please try again in a moment.');
       }
       throw new Error(error.response?.data?.message || 'Failed to login');
     }
@@ -76,8 +87,10 @@ export const AuthProvider = ({ children }) => {
         formData.append('profileImage', userData.profileImage);
       }
 
-      const response = await axios.post('http://localhost:5001/api/auth/register', formData, {
+      const response = await axios.post(`${API_URL}/api/auth/register`, formData, {
+        ...axiosConfig,
         headers: {
+          ...axiosConfig.headers,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -99,7 +112,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Registration error:', error);
       if (error.code === 'ERR_NETWORK') {
-        throw new Error('Unable to connect to server. Please check your internet connection.');
+        throw new Error('Unable to connect to server. Please try again in a moment.');
       }
       throw new Error(error.response?.data?.message || 'Failed to register');
     }
@@ -117,8 +130,10 @@ export const AuthProvider = ({ children }) => {
       if (userData.preferences) formData.append('preferences', JSON.stringify(userData.preferences));
       if (userData.profileImage) formData.append('profileImage', userData.profileImage);
 
-      const response = await axios.put('http://localhost:5001/api/auth/profile', formData, {
+      const response = await axios.put(`${API_URL}/api/auth/profile`, formData, {
+        ...axiosConfig,
         headers: {
+          ...axiosConfig.headers,
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -135,7 +150,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Profile update error:', error);
       if (error.code === 'ERR_NETWORK') {
-        throw new Error('Unable to connect to server. Please check your internet connection.');
+        throw new Error('Unable to connect to server. Please try again in a moment.');
       }
       throw new Error(error.response?.data?.message || 'Failed to update profile');
     }
@@ -144,8 +159,10 @@ export const AuthProvider = ({ children }) => {
   const deleteProfileImage = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete('http://localhost:5001/api/auth/profile/image', {
+      const response = await axios.delete(`${API_URL}/api/auth/profile/image`, {
+        ...axiosConfig,
         headers: {
+          ...axiosConfig.headers,
           'Authorization': `Bearer ${token}`
         }
       });
@@ -161,7 +178,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Profile image deletion error:', error);
       if (error.code === 'ERR_NETWORK') {
-        throw new Error('Unable to connect to server. Please check your internet connection.');
+        throw new Error('Unable to connect to server. Please try again in a moment.');
       }
       throw new Error(error.response?.data?.message || 'Failed to delete profile image');
     }
